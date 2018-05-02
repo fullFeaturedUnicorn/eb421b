@@ -22,6 +22,13 @@ void get_winsize() {
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsize_);
 }
 
+void push (int value, int size, int * pointer) {
+    for (int i = 0; i < size; i++) {
+        pointer[i] = pointer[i+1];
+    }
+    pointer[size] = value;
+}
+
 int get_cpuload() {
 	char str[100];
 	char * token;
@@ -121,13 +128,6 @@ void body_populate (int width, int height, char * buffer) {
     
 }
 
-void push (int value, int size, int * pointer) {
-    for (int i = 1; i < size; i++) {
-        pointer[i-1] = pointer[i];
-    }
-    pointer[size] = value;
-}
-
 void draw (int width, int height) {
     
     int counter = 0;
@@ -152,10 +152,12 @@ void draw (int width, int height) {
                 printw("%c", buffer[i]);
             }
         } else {
-            push(get_cpuload(), width, cpuloads);
+            
+            push(get_cpuload(), width - 1, cpuloads);
             for (int i = 0; i < width; i++) {
                 body_update(width, height, i, cpuloads[i], buffer);
             }
+            
             for (int i = 0; i < width * (height - 3); i++) {
                 printw("%c", buffer[i]);
             }
@@ -177,32 +179,6 @@ void draw (int width, int height) {
         sleep(1);
         clear();
     }
-    
-    /*
-    first_line(width, get_cpuload(), tuple);
-    for (int i = 0; i < width; i++) {
-		printw("%c", tuple[i]);
-	}
-	
-    body_update(width, height, 0, get_cpuload(), buffer);
-    
-    for (int i = 0; i < width * (height - 3); i++) {
-		printw("%c", buffer[i]);
-	}
-	
-	last_line(width, tuple);
-	for (int i = 0; i < width; i++) {
-        printw("%c", tuple[i]);
-	}
-	
-	legend(width, tuple);
-	for (int i = 0; i < width; i++) {
-		printw("%c", tuple[i]);
-	}
-	
-	free(tuple);
-    refresh();
-    */
 }
 
 int main (int argc, char **argv) {
