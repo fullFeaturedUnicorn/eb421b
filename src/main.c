@@ -121,16 +121,69 @@ void body_populate (int width, int height, char * buffer) {
     
 }
 
+void push (int value, int size, int * pointer) {
+    for (int i = 1; i < size; i++) {
+        pointer[i-1] = pointer[i];
+    }
+    pointer[size] = value;
+}
+
 void draw (int width, int height) {
+    
+    int counter = 0;
+    int * cpuloads = malloc(width * sizeof(int));
+    
     char * tuple = malloc(width * sizeof(char));
     char * buffer = malloc((height - 3) * width * sizeof(char));
     
+    body_populate(width, height, buffer);
+    
+    for (;;) {
+        cpuloads[counter] = get_cpuload();
+        
+        first_line(width, get_cpuload(), tuple);
+        for (int i = 0; i < width; i++) {
+            printw("%c", tuple[i]);
+        }
+        
+        if (counter < width) {
+            body_update(width, height, counter, cpuloads[counter], buffer);
+            for (int i = 0; i < width * (height - 3); i++) {
+                printw("%c", buffer[i]);
+            }
+        } else {
+            push(get_cpuload(), width, cpuloads);
+            for (int i = 0; i < width; i++) {
+                body_update(width, height, i, cpuloads[i], buffer);
+            }
+            for (int i = 0; i < width * (height - 3); i++) {
+                printw("%c", buffer[i]);
+            }
+            counter--;
+        }
+        
+        last_line(width, tuple);
+        for (int i = 0; i < width; i++) {
+            printw("%c", tuple[i]);
+        }
+	
+        legend(width, tuple);
+        for (int i = 0; i < width; i++) {
+            printw("%c", tuple[i]);
+        }
+	
+        counter++;
+        refresh();
+        sleep(1);
+        clear();
+    }
+    
+    /*
     first_line(width, get_cpuload(), tuple);
     for (int i = 0; i < width; i++) {
 		printw("%c", tuple[i]);
 	}
 	
-	body_populate(width, height, buffer);
     body_update(width, height, 0, get_cpuload(), buffer);
     
     for (int i = 0; i < width * (height - 3); i++) {
@@ -149,13 +202,14 @@ void draw (int width, int height) {
 	
 	free(tuple);
     refresh();
+    */
 }
 
 int main (int argc, char **argv) {
 	get_winsize();
     initscr();
+    keypad(stdscr, TRUE);
+    noecho();
     draw(winsize_.ws_col, winsize_.ws_row);
-    getch();
-    endwin();
     return 0;
 }
