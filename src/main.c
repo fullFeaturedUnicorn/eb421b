@@ -87,45 +87,55 @@ char * legend (int width, char * tuple) {
 	return tuple;
 }
 
-void body (int width, int height, int step, int load) {
+void body_update (int width, int height, int step, int load, char * buffer) {
     
-    char * buffer = malloc((height - 3) * width * sizeof(char));
     int load_h = (height - 3) * load / 100;
     int counter = 0;
     
     for (int i = 0; i < height - 3; i++) {
         for (int j = 0; j < width; j++) {
             if (j == step) {
-                if (i < (height - 3) - load_h) {
-                    buffer[counter] = ' ';
+                buffer[counter] = ' ';
+                if (i > (height - 3) - load_h) {
+                    buffer[counter] = '#';
                     counter++;
                 } else {
-                    buffer[counter] = '#';
                     counter++;
                 }
             } else {
-                buffer[counter] = ' ';
                 counter++;
             }
         }
     }
+}
+
+void body_populate (int width, int height, char * buffer) {
     
-    for (int i = 0; i < counter; i++) {
-        printw("%c", buffer[i]);
+    int counter = 0;
+    for (int i = 0; i < height - 3; i++) {
+        for (int j = 0; j < width; j++) {
+            buffer[counter] = ' ';
+            counter++;
+        }
     }
     
-    free(buffer);
 }
 
 void draw (int width, int height) {
     char * tuple = malloc(width * sizeof(char));
+    char * buffer = malloc((height - 3) * width * sizeof(char));
     
     first_line(width, get_cpuload(), tuple);
     for (int i = 0; i < width; i++) {
 		printw("%c", tuple[i]);
 	}
 	
-	body(width, height, 0, get_cpuload());
+	body_populate(width, height, buffer);
+    body_update(width, height, 0, get_cpuload(), buffer);
+    
+    for (int i = 0; i < width * (height - 3); i++) {
+		printw("%c", buffer[i]);
+	}
 	
 	last_line(width, tuple);
 	for (int i = 0; i < width; i++) {
